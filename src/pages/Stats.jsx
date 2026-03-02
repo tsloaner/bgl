@@ -324,8 +324,8 @@ export default function Stats() {
                     <p className="text-[10px] text-[#5C6359] mt-6 uppercase tracking-wider font-semibold">Min. 3 books rated to qualify</p>
                 </div>
 
-                {/* Chart 7: The Bell Curve — full width, at the bottom */}
-                <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#5C6359]/10 magnetic-shadow lg:col-span-2">
+                {/* Chart 8: The Bell Curve — paired with The Oracle */}
+                <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#5C6359]/10 magnetic-shadow">
                     <h3 className="text-2xl font-display text-[#2C4B3B] mb-2">The Bell Curve</h3>
                     <p className="text-sm text-[#5C6359] mb-8">Histogram of every rating ever given. Each bar = one point on the 1–10 scale.</p>
                     <div className="h-[300px] w-full">
