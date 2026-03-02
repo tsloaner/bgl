@@ -4,7 +4,7 @@ import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
     LineChart, Line, ReferenceLine, CartesianGrid, LabelList
 } from 'recharts';
-import { Star, BookOpen, Fire, Skull } from '@phosphor-icons/react';
+import { Star, BookOpen } from '@phosphor-icons/react';
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -12,6 +12,17 @@ const CustomTooltip = ({ active, payload, label }) => {
             <div className="bg-white p-3 border border-[#5C6359]/10 rounded-xl magnetic-shadow text-sm">
                 <p className="font-bold text-[#2C4B3B] mb-1">{payload[0].payload.title || label || payload[0].payload.name}</p>
                 <p className="text-[#DE6C4A] font-medium text-lg leading-none">{payload[0].value}</p>
+            </div>
+        );
+    }
+    return null;
+};
+
+const BellTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 border border-[#5C6359]/10 rounded-xl magnetic-shadow text-sm">
+                <p className="text-[#DE6C4A] font-medium text-lg leading-none">{payload[0].value} ratings</p>
             </div>
         );
     }
@@ -28,16 +39,11 @@ export default function Stats() {
     const allRatingsList = clubData.books.flatMap(b => Object.entries(b.ratings).filter(([_, v]) => typeof v === 'number').map(([id, v]) => ({ book: b, id, val: v })));
     const allTimeAvg = (allRatingsList.reduce((sum, r) => sum + r.val, 0) / allRatingsList.length).toFixed(1);
 
-    // Highest single rating
-    const spiciest = [...allRatingsList].sort((a, b) => b.val - a.val)[0];
-    const spiciestName = clubData.members.find(m => m.id === spiciest.id)?.name || spiciest.id;
-
-    // Toughest crowd (lowest average given)
+    // Critic Spectrum data
     const memberAvgs = clubData.members.map(m => ({
         name: m.name,
         avg: getMemberAvgGiven(m.id, clubData.books)
     })).filter(m => m.avg !== null).sort((a, b) => a.avg - b.avg);
-    const toughest = memberAvgs[0];
 
     // 2. Chart 1: The Critic Spectrum (Horizontal Bar)
     const criticData = [...memberAvgs].sort((a, b) => a.avg - b.avg).map(m => ({
@@ -71,7 +77,7 @@ export default function Stats() {
         .map(([name, { total, count }]) => {
             const avg = parseFloat((total / count).toFixed(2));
             const fill = avg >= 8 ? '#2C4B3B' : avg >= 7 ? '#4B8064' : avg >= 6.5 ? '#8BAD98' : '#DE6C4A';
-            return { name, avg, count, fill };
+            return { name, label: `${name} (${count})`, avg, count, fill };
         })
         .sort((a, b) => b.avg - a.avg);
 
@@ -135,7 +141,7 @@ export default function Stats() {
             </div>
 
             {/* Stat Cards */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <section className="grid grid-cols-2 gap-4 md:gap-6 max-w-sm">
                 <div className="relative bg-white p-6 rounded-3xl border border-[#5C6359]/10 magnetic-shadow flex flex-col justify-end min-h-[140px]">
                     <BookOpen className="text-[#2C4B3B] text-xl absolute top-5 right-5" />
                     <span className="text-4xl font-display text-[#2C4B3B] mb-1">{totalBooks}</span>
@@ -145,16 +151,6 @@ export default function Stats() {
                     <Star weight="fill" className="text-[#DE6C4A] text-xl absolute top-5 right-5" />
                     <span className="text-4xl font-display text-[#2C4B3B] mb-1">{allTimeAvg}</span>
                     <span className="text-[10px] font-bold text-[#5C6359] uppercase tracking-wider">Club Average</span>
-                </div>
-                <div className="relative bg-[#DE6C4A] p-6 rounded-3xl magnetic-shadow flex flex-col justify-end min-h-[140px] text-white">
-                    <Fire weight="fill" className="text-white text-xl absolute top-5 right-5" />
-                    <span className="text-xl font-display mb-1 line-clamp-2">"{spiciest.book.title}"</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 mt-auto">Spiciest Take: {spiciestName} gave a {spiciest.val}</span>
-                </div>
-                <div className="relative bg-[#2C4B3B] p-6 rounded-3xl magnetic-shadow flex flex-col justify-end min-h-[140px] text-white">
-                    <Skull weight="fill" className="text-white text-xl absolute top-5 right-5" />
-                    <span className="text-3xl font-display mb-1">{toughest.name}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 mt-auto">Toughest Crowd ({toughest.avg.toFixed(2)} Avg)</span>
                 </div>
             </section>
 
@@ -255,7 +251,7 @@ export default function Stats() {
                             <BarChart data={genreData} layout="vertical" margin={{ top: 0, right: 50, left: 10, bottom: 0 }}>
                                 <CartesianGrid horizontal={false} vertical={true} stroke="#5C6359" strokeOpacity={0.07} />
                                 <XAxis type="number" domain={[0, 10]} hide />
-                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={120} tick={{ fill: '#2C4B3B', fontWeight: 600, fontSize: 12 }} />
+                                <YAxis dataKey="label" type="category" axisLine={false} tickLine={false} width={145} tick={{ fill: '#2C4B3B', fontWeight: 600, fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: '#5C6359', opacity: 0.05 }} />
                                 <Bar dataKey="avg" radius={[0, 8, 8, 0]} barSize={22}>
                                     {genreData.map((entry, index) => (
@@ -273,23 +269,7 @@ export default function Stats() {
                     </div>
                 </div>
 
-                {/* Chart 5: The Bell Curve */}
-                <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#5C6359]/10 magnetic-shadow">
-                    <h3 className="text-2xl font-display text-[#2C4B3B] mb-2">The Bell Curve</h3>
-                    <p className="text-sm text-[#5C6359] mb-8">Histogram of every rating ever given. Each bar = one point on the 1–10 scale.</p>
-                    <div className="h-[350px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={buckets} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-                                <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#5C6359' }} />
-                                <YAxis hide />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#5C6359', opacity: 0.05 }} />
-                                <Bar dataKey="count" fill="#2C4B3B" radius={[8, 8, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Chart 6: Host Rankings */}
+                {/* Chart 5: Host Rankings */}
                 <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#5C6359]/10 magnetic-shadow">
                     <h3 className="text-2xl font-display text-[#2C4B3B] mb-2">Host Rankings</h3>
                     <p className="text-sm text-[#5C6359] mb-6">Ranked by average club rating of their book picks.</p>
@@ -342,6 +322,22 @@ export default function Stats() {
                         })}
                     </div>
                     <p className="text-[10px] text-[#5C6359] mt-6 uppercase tracking-wider font-semibold">Min. 3 books rated to qualify</p>
+                </div>
+
+                {/* Chart 7: The Bell Curve — full width, at the bottom */}
+                <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-[#5C6359]/10 magnetic-shadow lg:col-span-2">
+                    <h3 className="text-2xl font-display text-[#2C4B3B] mb-2">The Bell Curve</h3>
+                    <p className="text-sm text-[#5C6359] mb-8">Histogram of every rating ever given. Each bar = one point on the 1–10 scale.</p>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={buckets} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                                <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#5C6359' }} />
+                                <YAxis hide />
+                                <Tooltip content={<BellTooltip />} cursor={{ fill: '#5C6359', opacity: 0.05 }} />
+                                <Bar dataKey="count" fill="#2C4B3B" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
             </section>
