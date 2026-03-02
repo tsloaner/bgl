@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", serif;
+  --font-body: "Outfit", sans-serif;
+
+  --color-bgl-green: #2C4B3B;
+  --color-bgl-cream: #F8F6F0;
+  --color-bgl-orange: #DE6C4A;
+  --color-bgl-text: #222222;
+  --color-bgl-muted: #5C6359;
+}
+
+@layer base {
+  :root {
+    background-color: var(--color-bgl-cream);
+    color: var(--color-bgl-text);
+  }
+
+  body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-bgl-green);
+  }
+}
+
+@layer utilities {
+  .liquid-glass {
+    @apply bg-white/60 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] border border-white/20;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 32px 0 rgba(0,0,0,0.05);
+  }
+  
+  .magnetic-shadow {
+    @apply shadow-[0_20px_40px_-15px_rgba(44,75,59,0.15)] transition-shadow duration-300;
+  }
+  .magnetic-shadow:hover {
+    @apply shadow-[0_25px_50px_-12px_rgba(44,75,59,0.25)];
+  }
+}
